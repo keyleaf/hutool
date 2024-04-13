@@ -11,9 +11,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import java.io.File;
-import java.io.Reader;
-import java.io.StringWriter;
+import java.io.*;
 import java.nio.charset.Charset;
 
 /**
@@ -50,24 +48,50 @@ public class JAXBUtil {
 	/**
 	 * JavaBean转换成xml
 	 *
-	 * @param bean    Bean对象
-	 * @param charset 编码 eg: utf-8
-	 * @param format  是否格式化输出eg: true
+	 * @param bean        Bean对象
+	 * @param charset     编码 eg: utf-8
+	 * @param format      是否格式化输出eg: true
+	 * @param ignoreCData 是否忽略对CData修饰的数据处理: true
 	 * @return 输出的XML字符串
 	 */
-	public static String beanToXml(Object bean, Charset charset, boolean format) {
+	public static String beanToXml(Object bean, Charset charset, boolean format, boolean ignoreCData) {
 		StringWriter writer;
 		try {
 			JAXBContext context = JAXBContext.newInstance(bean.getClass());
 			Marshaller marshaller = context.createMarshaller();
 			marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, format);
 			marshaller.setProperty(Marshaller.JAXB_ENCODING, charset.name());
+
+			// 禁止转义 CData处理
+			if (ignoreCData) {
+
+//				CharacterEscapeHandler escapeHandler = NoEscapeHandler.theInstance;
+//				marshaller.setProperty("com.sun.xml.internal.bind.characterEscapeHandler", escapeHandler);
+//				marshaller.setProperty("com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler", escapeHandler);
+				marshaller.setProperty("com.sun.xml.internal.bind.marshaller.CharacterEscapeHandler", ReflectUtil.newInstance("com.sun.xml.internal.bind.marshaller.NoEscapeHandler"));
+
+//				marshaller.setProperty(CharacterEscapeHandler.class.getName(), ReflectUtil.newInstance(NoEscapeHandler.class));
+//				marshaller.setProperty(CharacterEscapeHandler.class.getName(), escapeHandler);
+			}
+
 			writer = new StringWriter();
 			marshaller.marshal(bean, writer);
 		} catch (Exception e) {
 			throw new UtilException("convertToXml 错误：" + e.getMessage(), e);
 		}
 		return writer.toString();
+	}
+
+	/**
+	 * JavaBean转换成xml
+	 *
+	 * @param bean    Bean对象
+	 * @param charset 编码 eg: utf-8
+	 * @param format  是否格式化输出eg: true
+	 * @return 输出的XML字符串
+	 */
+	public static String beanToXml(Object bean, Charset charset, boolean format) {
+		return beanToXml(bean, charset, format, false);
 	}
 
 	/**
