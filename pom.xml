@@ -8,7 +8,7 @@
 
 	<groupId>cn.hutool</groupId>
 	<artifactId>hutool-parent</artifactId>
-	<version>5.8.19</version>
+	<version>5.8.19-icd-SNAPSHOT</version>
 	<name>hutool</name>
 	<description>Hutool是一个小而全的Java工具类库，通过静态方法封装，降低相关API的学习成本，提高工作效率，使Java拥有函数式语言般的优雅，让Java语言也可以“甜甜的”。</description>
 	<url>https://github.com/dromara/hutool</url>
@@ -136,8 +136,31 @@
 					</execution>
 				</executions>
 			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<version>3.2.1</version>
+				<executions>
+					<execution>
+						<id>oss</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jar-no-fork</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
+
+	<distributionManagement>
+		<repository>
+			<!--必须与 settings.xml 的 id 一致-->
+			<id>icd-icd_repository</id>
+			<name>icd_repository</name>
+			<url>http://devops.inspur.com/ISS/icd/Repo/LOCAL_REPO/icd_repository</url>
+		</repository>
+	</distributionManagement>
 
 	<profiles>
 		<profile>
