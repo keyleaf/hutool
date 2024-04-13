@@ -38,6 +38,10 @@ public class Dict extends LinkedHashMap<String, Object> implements BasicTypeGett
 	 */
 	private boolean caseInsensitive;
 
+	public boolean isCaseInsensitive() {
+		return caseInsensitive;
+	}
+
 	// --------------------------------------------------------------- Static method start
 
 	/**

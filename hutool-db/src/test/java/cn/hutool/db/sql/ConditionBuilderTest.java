@@ -13,7 +13,7 @@ public class ConditionBuilderTest {
 		Condition c3 = new Condition("group", "like %aaa");
 
 		final ConditionBuilder builder = ConditionBuilder.of(c1, c2, c3);
-		final String sql = builder.build();
+		final String sql = builder.build(true);
 		Assert.assertEquals("user IS NULL OR name IS NOT NULL AND group LIKE ?", sql);
 		Assert.assertEquals(1, builder.getParamValues().size());
 		Assert.assertEquals("%aaa", builder.getParamValues().get(0));

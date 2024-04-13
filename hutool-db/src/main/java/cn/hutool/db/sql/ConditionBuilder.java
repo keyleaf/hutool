@@ -66,12 +66,21 @@ public class ConditionBuilder implements Builder<String> {
 	 */
 	@Override
 	public String build() {
+		return this.build(false);
+	}
+
+	/**
+	 * 构建组合条件<br>
+	 * @param attachDescription 构建时附加上条件描述
+	 * @return 构建后的SQL语句条件部分
+	 */
+	public String build(boolean attachDescription) {
 		if(null == this.paramValues){
 			this.paramValues = new ArrayList<>();
 		} else {
 			this.paramValues.clear();
 		}
-		return build(this.paramValues);
+		return build(this.paramValues, attachDescription);
 	}
 
 	/**
@@ -82,6 +91,18 @@ public class ConditionBuilder implements Builder<String> {
 	 * @return 构建后的SQL语句条件部分
 	 */
 	public String build(List<Object> paramValues) {
+		return this.build(paramValues,false);
+	}
+
+	/**
+	 * 构建组合条件<br>
+	 * 例如：name = ? AND type IN (?, ?) AND other LIKE ?
+	 *
+	 * @param paramValues       用于写出参数的List,构建时会将参数写入此List
+	 * @param attachDescription 构建时附加上条件描述
+	 * @return 构建后的SQL语句条件部分
+	 */
+	public String build(List<Object> paramValues, boolean attachDescription) {
 		if (ArrayUtil.isEmpty(conditions)) {
 			return StrUtil.EMPTY;
 		}
@@ -98,7 +119,7 @@ public class ConditionBuilder implements Builder<String> {
 			}
 
 			// 构建条件部分："name = ?"、"name IN (?,?,?)"、"name BETWEEN ？AND ？"、"name LIKE ?"
-			conditionStrBuilder.append(condition.toString(paramValues));
+			conditionStrBuilder.append(condition.toString(paramValues, attachDescription));
 		}
 		return conditionStrBuilder.toString();
 	}

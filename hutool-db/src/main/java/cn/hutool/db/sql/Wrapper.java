@@ -193,11 +193,26 @@ public class Wrapper implements Serializable {
 			Condition clonedCondition;
 			for (int i = 0; i < conditions.length; i++) {
 				clonedCondition = conditions[i].clone();
-				clonedCondition.setField(wrap(clonedCondition.getField()));
+				if (clonedCondition.isWrap()) {
+					if (clonedCondition instanceof ConditionGroup) {
+						wrap((ConditionGroup) clonedCondition);
+					} else {
+						clonedCondition.setField(wrap(clonedCondition.getField()));
+					}
+				}
 				clonedConditions[i] = clonedCondition;
 			}
 		}
 
 		return clonedConditions;
+	}
+
+	/**
+	 * 包装条件组
+	 *
+	 * @param conditionGroup 条件组
+	 */
+	private void wrap(ConditionGroup conditionGroup) {
+		conditionGroup.setConditions(wrap(conditionGroup.getConditions()));
 	}
 }

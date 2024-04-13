@@ -2,6 +2,7 @@ package cn.hutool.db.handler;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.bean.PropDesc;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ArrayUtil;
@@ -131,7 +132,23 @@ public class HandleHelper {
 	 * @since 4.5.16
 	 */
 	public static Entity handleRow(int columnCount, ResultSetMetaData meta, ResultSet rs, boolean caseInsensitive) throws SQLException {
-		return handleRow(new Entity(null, caseInsensitive), columnCount, meta, rs, true);
+		return handleRow(new Entity(null, caseInsensitive), columnCount, meta, rs, true, null);
+	}
+
+	/**
+	 * 处理单条数据
+	 *
+	 * @param columnCount 列数
+	 * @param meta ResultSetMetaData
+	 * @param rs 数据集
+	 * @param caseInsensitive 是否大小写不敏感
+	 * @param unitedMap 连表查询时，将某个表下的所有数据封装到单独的一个entity中进行嵌套
+	 * @return 每一行的Entity
+	 * @throws SQLException SQL执行异常
+	 * @since 4.5.16
+	 */
+	public static Entity handleRow(int columnCount, ResultSetMetaData meta, ResultSet rs, boolean caseInsensitive, Map<String, String> unitedMap) throws SQLException {
+		return handleRow(new Entity(null, caseInsensitive), columnCount, meta, rs, true, unitedMap);
 	}
 
 	/**
@@ -143,13 +160,19 @@ public class HandleHelper {
 	 * @param meta ResultSetMetaData
 	 * @param rs 数据集
 	 * @param withMetaInfo 是否包含表名、字段名等元信息
+	 * @param unitedMap 连表查询时，将某个表下的所有数据封装到单独的一个entity中进行嵌套
 	 * @return 每一行的Entity
 	 * @throws SQLException SQL执行异常
 	 * @since 3.3.1
 	 */
-	public static <T extends Entity> T handleRow(T row, int columnCount, ResultSetMetaData meta, ResultSet rs, boolean withMetaInfo) throws SQLException {
+	public static <T extends Entity> T handleRow(T row, int columnCount, ResultSetMetaData meta, ResultSet rs, boolean withMetaInfo, Map<String, String> unitedMap) throws SQLException {
 		int type;
 		String columnLabel;
+		if (CollUtil.isNotEmpty(unitedMap)) {
+			unitedMap.forEach((tableName, alias)-> {
+				row.put(StrUtil.blankToDefault(alias, tableName), new Entity(tableName, row.isCaseInsensitive()));
+			});
+		}
 		for (int i = 1; i <= columnCount; i++) {
 			type = meta.getColumnType(i);
 			columnLabel = meta.getColumnLabel(i);
@@ -158,7 +181,13 @@ public class HandleHelper {
 				// 分页时会查出rownum字段，此处忽略掉读取
 				continue;
 			}
-			row.put(columnLabel, getColumnValue(rs, i, type, null));
+			String tableName = meta.getTableName(i);
+			if (CollUtil.isNotEmpty(unitedMap) && unitedMap.containsKey(tableName)) {
+				final Entity entity = row.get(StrUtil.blankToDefault(unitedMap.get(tableName), tableName), new Entity(tableName, row.isCaseInsensitive()));
+				entity.put(columnLabel, getColumnValue(rs, i, type, null));
+			} else {
+				row.putIfAbsent(columnLabel, getColumnValue(rs, i, type, null));
+			}
 		}
 		if (withMetaInfo) {
 			try {
@@ -229,11 +258,27 @@ public class HandleHelper {
 	 * @since 4.5.16
 	 */
 	public static <T extends Collection<Entity>> T handleRs(ResultSet rs, T collection, boolean caseInsensitive) throws SQLException {
+		return handleRs(rs, collection, caseInsensitive, null);
+	}
+
+	/**
+	 * 处理多条数据
+	 *
+	 * @param <T> 集合类型
+	 * @param rs 数据集
+	 * @param collection 数据集
+	 * @param caseInsensitive 是否大小写不敏感
+	 * @param unitedMap 连表查询时，将某个表下的所有数据封装到单独的一个entity中进行嵌套
+	 * @return Entity列表
+	 * @throws SQLException SQL执行异常
+	 * @since 4.5.16
+	 */
+	public static <T extends Collection<Entity>> T handleRs(ResultSet rs, T collection, boolean caseInsensitive, Map<String, String> unitedMap) throws SQLException {
 		final ResultSetMetaData meta = rs.getMetaData();
 		final int columnCount = meta.getColumnCount();
 
 		while (rs.next()) {
-			collection.add(HandleHelper.handleRow(columnCount, meta, rs, caseInsensitive));
+			collection.add(HandleHelper.handleRow(columnCount, meta, rs, caseInsensitive, unitedMap));
 		}
 
 		return collection;

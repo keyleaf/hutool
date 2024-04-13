@@ -6,6 +6,12 @@ import org.junit.Test;
 public class SqlBuilderTest {
 
 	@Test
+	public void selfTest() {
+		SqlBuilder builder = SqlBuilder.create().from("user").where(new Condition("name", "= null"));
+		System.out.println(builder.build());
+	}
+
+	@Test
 	public void queryNullTest() {
 		SqlBuilder builder = SqlBuilder.create().select().from("user").where(new Condition("name", "= null"));
 		Assert.assertEquals("SELECT * FROM user WHERE name IS NULL", builder.build());

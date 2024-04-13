@@ -49,6 +49,11 @@ public class Condition extends CloneSupport<Condition> {
 	private static final String VALUE_NULL = "NULL";
 
 	/**
+	 * 描述当前条件的作用
+	 */
+	private String description;
+
+	/**
 	 * 字段
 	 */
 	private String field;
@@ -64,6 +69,10 @@ public class Condition extends CloneSupport<Condition> {
 	 * 是否使用条件值占位符
 	 */
 	private boolean isPlaceHolder = true;
+	/**
+	 * 是否将字段名用单引号或者反引号包装起来，避免冲突
+	 */
+	private boolean isWrap = true;
 	/**
 	 * between firstValue and secondValue
 	 */
@@ -141,6 +150,15 @@ public class Condition extends CloneSupport<Condition> {
 	// --------------------------------------------------------------- Constructor end
 
 	// --------------------------------------------------------------- Getters and Setters start
+
+	public String getDescription() {
+		return description;
+	}
+
+	public Condition setDescription(String description) {
+		this.description = description;
+		return this;
+	}
 
 	/**
 	 * @return 字段
@@ -225,6 +243,14 @@ public class Condition extends CloneSupport<Condition> {
 	 */
 	public void setPlaceHolder(boolean isPlaceHolder) {
 		this.isPlaceHolder = isPlaceHolder;
+	}
+
+	public boolean isWrap() {
+		return isWrap;
+	}
+
+	public void setWrap(boolean wrap) {
+		isWrap = wrap;
 	}
 
 	/**
@@ -332,6 +358,10 @@ public class Condition extends CloneSupport<Condition> {
 	 * @return 条件字符串
 	 */
 	public String toString(List<Object> paramValues) {
+		return this.toString(paramValues, false);
+	}
+
+	public String toString(List<Object> paramValues, boolean attachDescription) {
 		final StringBuilder conditionStrBuilder = StrUtil.builder();
 		// 判空值
 		checkValueNull();
@@ -355,11 +385,16 @@ public class Condition extends CloneSupport<Condition> {
 				// 直接使用条件值
 				final String valueStr = String.valueOf(this.value);
 				conditionStrBuilder.append(" ").append(isOperatorLike() ?
-						StrUtil.wrap(valueStr, "'") : valueStr);
+					StrUtil.wrap(valueStr, "'") : valueStr);
 			}
 		}
 
-		return conditionStrBuilder.toString();
+		if (attachDescription) {
+			return StrUtil.isBlank(this.getDescription()) ? conditionStrBuilder.toString() : conditionStrBuilder.append(" /* ").append(this.getDescription()).append(" */ ").toString();
+		} else {
+			return conditionStrBuilder.toString();
+		}
+
 	}
 
 	// ----------------------------------------------------------------------------------------------- Private method start

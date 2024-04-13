@@ -11,16 +11,21 @@ import cn.hutool.core.util.StrUtil;
  */
 public class Order implements Serializable{
 	private static final long serialVersionUID = 1L;
-	
+
 	/** 排序的字段 */
 	private String field;
 	/** 排序方式（正序还是反序） */
 	private Direction direction;
-	
+
+	/**
+	 * 当前排序字段所属的表的表名
+	 */
+	private String tableName;
+
 	//---------------------------------------------------------- Constructor start
 	public Order() {
 	}
-	
+
 	/**
 	 * 构造
 	 * @param field 排序字段
@@ -28,7 +33,7 @@ public class Order implements Serializable{
 	public Order(String field) {
 		this.field = field;
 	}
-	
+
 	/**
 	 * 构造
 	 * @param field 排序字段
@@ -38,7 +43,7 @@ public class Order implements Serializable{
 		this(field);
 		this.direction = direction;
 	}
-	
+
 	//---------------------------------------------------------- Constructor end
 
 	//---------------------------------------------------------- Getters and Setters start
@@ -56,6 +61,15 @@ public class Order implements Serializable{
 		this.field = field;
 	}
 
+	public String getTableName() {
+		return tableName;
+	}
+
+	public Order setTableName(String tableName) {
+		this.tableName = tableName;
+		return this;
+	}
+
 	/**
 	 * @return 排序方向
 	 */
@@ -70,7 +84,7 @@ public class Order implements Serializable{
 		this.direction = direction;
 	}
 	//---------------------------------------------------------- Getters and Setters end
-	
+
 	@Override
 	public String toString() {
 		return StrUtil.builder().append(this.field).append(StrUtil.SPACE).append(null == direction ? StrUtil.EMPTY : direction).toString();
