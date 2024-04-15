@@ -5,6 +5,7 @@ import cn.hutool.core.bean.PropDesc;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.lang.Assert;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -168,9 +169,11 @@ public class HandleHelper {
 	public static <T extends Entity> T handleRow(T row, int columnCount, ResultSetMetaData meta, ResultSet rs, boolean withMetaInfo, Map<String, String> unitedMap) throws SQLException {
 		int type;
 		String columnLabel;
+		final List<String> unitedColumns = new ArrayList<>();
 		if (CollUtil.isNotEmpty(unitedMap)) {
 			unitedMap.forEach((tableName, alias)-> {
 				row.put(StrUtil.blankToDefault(alias, tableName), new Entity(tableName, row.isCaseInsensitive()));
+				unitedColumns.add(alias);
 			});
 		}
 		for (int i = 1; i <= columnCount; i++) {
@@ -182,11 +185,19 @@ public class HandleHelper {
 				continue;
 			}
 			String tableName = meta.getTableName(i);
+			Object value = getColumnValue(rs, i, type, null);
 			if (CollUtil.isNotEmpty(unitedMap) && unitedMap.containsKey(tableName)) {
-				final Entity entity = row.get(StrUtil.blankToDefault(unitedMap.get(tableName), tableName), new Entity(tableName, row.isCaseInsensitive()));
-				entity.put(columnLabel, getColumnValue(rs, i, type, null));
+				final Entity entity = row.get(StrUtil.blankToDefault(unitedMap.get(tableName), tableName), null);
+				if (entity != null) {
+					entity.put(columnLabel, value);
+				}
 			} else {
-				row.putIfAbsent(columnLabel, getColumnValue(rs, i, type, null));
+				if (unitedColumns.contains(columnLabel) && null == value) {
+					// 聚合表单字段值为空，需要用null覆盖row中的聚合表单结构数据
+					row.put(columnLabel, null);
+				} else {
+					row.putIfAbsent(columnLabel, value);
+				}
 			}
 		}
 		if (withMetaInfo) {
