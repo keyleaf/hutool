@@ -39,8 +39,10 @@ public class CellSetterFactory {
 			return new RichTextCellSetter((RichTextString) value);
 		} else if (value instanceof Number) {
 			return new NumberCellSetter((Number) value);
-		}else if (value instanceof Hyperlink) {
+		} else if (value instanceof Hyperlink) {
 			return new HyperlinkCellSetter((Hyperlink) value);
+		} else if (value instanceof Iterable<?>) {
+			return new IterableCellSetter((Iterable<?>) value);
 		} else {
 			return new CharSequenceCellSetter(value.toString());
 		}

@@ -253,6 +253,9 @@ public class StyleSet implements Serializable {
 			if (null != this.cellStyleForHyperlink) {
 				style = this.cellStyleForHyperlink;
 			}
+		} else if (value instanceof Iterable) {
+			style = StyleUtil.cloneCellStyle(workbook, this.cellStyle);
+			style.setWrapText(true);
 		}
 
 		return style;
