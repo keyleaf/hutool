@@ -3101,4 +3101,35 @@ public class CollUtil {
 
 		return IterUtil.isEqualList(list1, list2);
 	}
+
+	/**
+	 * 将存在嵌套元素的集合平铺开来
+	 *
+	 * @param list               将存在嵌套元素的集合
+	 * @param childrenMapper     子元素获取函数
+	 * @param valueMapper        值处理函数
+	 * @param collectionSupplier 集合构造函数
+	 * @param <T>                嵌套元素类型
+	 * @param <U>                转换后的值类型
+	 * @param <C>                集合类型
+	 * @return 集合
+	 */
+	public static <T, U, C extends Collection<U>> C flatten(Iterable<T> list,
+															Function<? super T, ? extends Iterable<T>> childrenMapper,
+															Function<? super T, ? extends U> valueMapper,
+															Supplier<C> collectionSupplier) {
+		C collection = collectionSupplier.get();
+		if (isEmpty(list)) {
+			return collection;
+		}
+		list.forEach(t -> {
+			collection.add(valueMapper.apply(t));
+			Iterable<T> children = childrenMapper.apply(t);
+			if (CollUtil.isNotEmpty(children)) {
+				collection.addAll(flatten(children, childrenMapper, valueMapper, collectionSupplier));
+			}
+		});
+		return collection;
+	}
+
 }

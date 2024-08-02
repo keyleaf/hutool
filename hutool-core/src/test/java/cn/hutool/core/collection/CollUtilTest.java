@@ -1057,4 +1057,50 @@ public class CollUtilTest {
 		final Object first = CollUtil.getFirst(nullList);
 		Assert.assertNull(first);
 	}
+
+	@Test
+	public void flattenTest() {
+		// 假设这是你的原始嵌套列表
+		List<OptionDTO> result = new ArrayList<>();
+
+		OptionDTO parent1 = new OptionDTO();
+		parent1.setLabel("Parent 1");
+		parent1.setValue("1");
+
+		OptionDTO child1 = new OptionDTO();
+		child1.setLabel("Child 1");
+		child1.setValue("1.1");
+
+		OptionDTO child2 = new OptionDTO();
+		child2.setLabel("Child 2");
+		child2.setValue("1.2");
+
+		OptionDTO child11 = new OptionDTO();
+		child11.setLabel("Child 21");
+		child11.setValue("1.1");
+
+		OptionDTO child12 = new OptionDTO();
+		child12.setLabel("Child 22");
+		child12.setValue("1.2");
+
+		parent1.setChildren(CollUtil.list(false, child1, child2));
+		child1.setChildren(CollUtil.list(false, child11, child12));
+
+		result.add(parent1);
+
+		result = CollUtil.flatten(result, OptionDTO::getChildren, optionDTO -> {
+			OptionDTO option = new OptionDTO();
+			option.setLabel(optionDTO.getLabel());
+			option.setValue(optionDTO.getValue());
+			return option;
+		}, ArrayList::new);
+		Assert.assertEquals(5, result.size());
+	}
+
+	@Data
+	public static class OptionDTO {
+		private String label;
+		private String value;
+		private List<OptionDTO> children;
+	}
 }
