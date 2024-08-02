@@ -24,10 +24,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
+import java.util.function.*;
 
 /**
  * 集合相关工具类
@@ -3130,6 +3127,22 @@ public class CollUtil {
 			}
 		});
 		return collection;
+	}
+
+	/**
+	 * 创建桶子（容器）
+	 *
+	 * @param collectionSupplier 桶子（容器）提供函数
+	 * @param size               桶子（容器）大小
+	 * @param pourConsumer       桶子（容器）元素消费函数
+	 * @param <E>                元素类型
+	 * @param <C>                桶子（容器）类型
+	 * @return 桶子（容器）
+	 */
+	public static <E, C extends Collection<E>> Bucket<E> bucket(Supplier<C> collectionSupplier,
+																int size,
+																java.util.function.Consumer<Collection<E>> pourConsumer) {
+		return Bucket.wrap(collectionSupplier, size, pourConsumer);
 	}
 
 }

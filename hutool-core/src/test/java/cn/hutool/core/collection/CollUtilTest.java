@@ -1103,4 +1103,18 @@ public class CollUtilTest {
 		private String value;
 		private List<OptionDTO> children;
 	}
+
+	@Test
+	public void bucketTest() {
+		List<String> result = new ArrayList<>();
+		Bucket<String> bucket = CollUtil.bucket(ArrayList::new, 10, items -> {
+			String val = items.size() + ": " + CollUtil.join(items, ",");
+			System.out.println(val);
+			result.add(val);
+		});
+		for (int i = 0; i < 100; i++) {
+			bucket.add(i + "");
+		}
+		Assert.assertEquals(10, result.size());
+	}
 }
