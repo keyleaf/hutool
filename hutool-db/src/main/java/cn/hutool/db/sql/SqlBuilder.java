@@ -246,8 +246,14 @@ public class SqlBuilder implements Builder<String> {
 				if (paramValues.size() > 0) {
 					sql.append(", ");
 				}
-				sql.append((null != wrapper) ? wrapper.wrap(field) : field).append(" = ? ");
-				this.paramValues.add(value);// 更新不对空做处理，因为存在清空字段的情况
+				if (value instanceof SqlBuilder) {
+					SqlBuilder sqlBuilder = (SqlBuilder) value;
+					sql.append((null != wrapper) ? wrapper.wrap(field) : field).append(" = ( ").append(sqlBuilder.build()).append(")");
+					this.paramValues.addAll(sqlBuilder.getParamValues());
+				} else {
+					sql.append((null != wrapper) ? wrapper.wrap(field) : field).append(" = ? ");
+					this.paramValues.add(value);// 更新不对空做处理，因为存在清空字段的情况
+				}
 			}
 		});
 		return this;
