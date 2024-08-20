@@ -9,9 +9,6 @@ import java.math.BigDecimal;
 import java.time.temporal.TemporalAccessor;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * 样式集合，此样式集合汇集了整个工作簿的样式，用于减少样式的创建和冗余
@@ -45,16 +42,6 @@ public class StyleSet implements Serializable {
 	 * 默认链接样式
 	 */
 	protected final CellStyle cellStyleForHyperlink;
-
-	/**
-	 * 样式map
-	 */
-	protected final Map<String, CellStyle> cellStyleCache = new HashMap<>();
-
-	/**
-	 * 自定义样式索引
-	 */
-	protected final AtomicInteger cellStyleIndex = new AtomicInteger(BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX);
 
 	/**
 	 * 构造
@@ -274,11 +261,4 @@ public class StyleSet implements Serializable {
 		return style;
 	}
 
-	public Map<String, CellStyle> getCellStyleCache() {
-		return cellStyleCache;
-	}
-
-	public AtomicInteger getCellStyleIndex() {
-		return cellStyleIndex;
-	}
 }

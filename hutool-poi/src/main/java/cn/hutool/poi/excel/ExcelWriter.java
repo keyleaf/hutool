@@ -20,18 +20,7 @@ import cn.hutool.poi.excel.cell.CellLocation;
 import cn.hutool.poi.excel.cell.CellUtil;
 import cn.hutool.poi.excel.style.Align;
 import org.apache.poi.common.usermodel.Hyperlink;
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.ClientAnchor;
-import org.apache.poi.ss.usermodel.DataValidation;
-import org.apache.poi.ss.usermodel.DataValidationConstraint;
-import org.apache.poi.ss.usermodel.DataValidationHelper;
-import org.apache.poi.ss.usermodel.Drawing;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HeaderFooter;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
-import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddressList;
 import org.apache.poi.xssf.usermodel.XSSFDataValidation;
 
@@ -39,12 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -81,6 +65,14 @@ public class ExcelWriter extends ExcelBase<ExcelWriter> {
 	 * 标题项对应列号缓存，每次写标题更新此缓存
 	 */
 	private Map<String, Integer> headLocationCache;
+	/**
+	 * 自定义样式缓存
+	 */
+	private final Map<String, CellStyle> customCellStyleCache = new SafeConcurrentHashMap<>();
+	/**
+	 * 自定义样式索引
+	 */
+	private final AtomicInteger cellStyleIndex = new AtomicInteger(BuiltinFormats.FIRST_USER_DEFINED_FORMAT_INDEX);
 
 	// -------------------------------------------------------------------------- Constructor start
 
@@ -214,6 +206,7 @@ public class ExcelWriter extends ExcelBase<ExcelWriter> {
 	 */
 	public ExcelWriter reset() {
 		resetRow();
+		this.customCellStyleCache.clear();
 		return this;
 	}
 
@@ -1072,7 +1065,8 @@ public class ExcelWriter extends ExcelBase<ExcelWriter> {
 					location = this.headLocationCache.get(StrUtil.toString(cell.getColumnKey()));
 				}
 				if (null != location) {
-					CellStyle cellStyle = this.styleSet.getCellStyleCache().get(StrUtil.toString(cell.getColumnKey()));
+					// 先获取自定义样式
+					CellStyle cellStyle = this.customCellStyleCache.get(StrUtil.toString(cell.getColumnKey()));
 					if (cellStyle != null) {
 						CellUtil.setCellValue(CellUtil.getOrCreateCell(row, location), cell.getValue(), cellStyle);
 					} else {
@@ -1413,4 +1407,13 @@ public class ExcelWriter extends ExcelBase<ExcelWriter> {
 		return aliasComparator;
 	}
 	// -------------------------------------------------------------------------- Private method end
+
+
+	public Map<String, CellStyle> getCustomCellStyleCache() {
+		return customCellStyleCache;
+	}
+
+	public int getCellStyleIndexAndAdd(int delta) {
+		return cellStyleIndex.getAndAdd(delta);
+	}
 }
