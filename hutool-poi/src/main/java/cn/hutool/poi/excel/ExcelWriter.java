@@ -1072,7 +1072,12 @@ public class ExcelWriter extends ExcelBase<ExcelWriter> {
 					location = this.headLocationCache.get(StrUtil.toString(cell.getColumnKey()));
 				}
 				if (null != location) {
-					CellUtil.setCellValue(CellUtil.getOrCreateCell(row, location), cell.getValue(), this.styleSet, false);
+					CellStyle cellStyle = this.styleSet.getCellStyleCache().get(StrUtil.toString(cell.getColumnKey()));
+					if (cellStyle != null) {
+						CellUtil.setCellValue(CellUtil.getOrCreateCell(row, location), cell.getValue(), cellStyle);
+					} else {
+						CellUtil.setCellValue(CellUtil.getOrCreateCell(row, location), cell.getValue(), this.styleSet, false);
+					}
 				}
 			}
 		} else {
